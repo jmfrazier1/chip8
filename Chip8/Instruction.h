@@ -133,13 +133,20 @@ public:
      short getType() { return type; }
      short getNNN() { return nnn; }
      unsigned int getMemoryAddress() { return memoryOffset; }
+     string getMemoryAddressStr() { return itostr(memoryOffset, 4); }
      void setLabel(string instructionLabel) { label = instructionLabel; }
-
+     string getLabel() { return label; }
      Instruction(const Instruction &);
      Instruction &operator=(const Instruction &rhs);
      int operator==(const Instruction &rhs) const;
      int operator<(const Instruction &rhs) const;
-     bool isDataOperation()
+     short getX() { return x; }
+     short getY() { return y; }
+     short getN() { return n; }
+     short getKK() { return kk; }
+     int getFullInstruction() { return fullInstruction; }
+     bool isDataOperation();
+#ifdef WONT_BE
      {
           bool dataOp = false;
           switch (type)
@@ -150,7 +157,9 @@ public:
           }
           return dataOp;
      }
-     bool isLabelOperation()
+#endif
+     bool isLabelOperation();
+#ifdef WONT_BE
      {
           bool labelOp = false;
           switch (type)
@@ -162,6 +171,7 @@ public:
           }
           return labelOp;
      }
+#endif
 
 };
 

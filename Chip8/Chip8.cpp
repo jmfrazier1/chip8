@@ -2,13 +2,71 @@
 //
 
 #include "stdafx.h"
-#include "Instruction.h"
-#include <list>
-#include <vector>
-#include <algorithm>
+//#include "Instruction.h"
+//#include <list>
+//#include <vector>
+//#include <algorithm>
+//#include "VirtualMachine.h"
 using namespace std;
 
+
+void xorTest()
+{
+     /*
+
+     Collision detection
+
+     Original 0000 0000 new anything, no collision
+     Original 0000 0001 new 0000 0000 Collision
+     not
+     1111 1110 XOR 0000 0000
+     Original 0000 0001 new 1111 1111 No Collision
+
+
+
+
+     */
+     unsigned char u1;
+     unsigned char u2;
+     unsigned char res;
+
+     int isCollision = 0;
+
+     //Not a collision, res = ff
+     u1 = 0x00;// 0000 0000
+     u2 = 0x00;// 0000 0000
+     res = (~u1) ^ (~u2);
+     isCollision = ViewPort::isCollision(u1, u2);
+     cout << "Comparing " << hex << (int)u1 << " to " << (int)u2 << " is " << isCollision << "" << endl;
+
+
+
+     //Is a collision, res = fe
+     u1 = 0x01;// 0000 0001
+     u2 = 0x00;// 0000 0000
+     res = (~u1) ^ (~u2);
+     isCollision = ViewPort::isCollision(u1, u2);
+     cout << "Comparing " << hex << (int)u1 << " to " << (int)u2 << " is " << isCollision << "" << endl;
+
+     //Not a collision, res = 1
+     u1 = 0x01;// 0000 0001
+     u2 = 0xff;// 1111 1111
+
+     res = (~u1)^(~u2);
+     isCollision = ViewPort::isCollision(u1, u2);
+     cout << "Comparing " << hex << (int)u1 << " to " << (int)u2 << " is " << isCollision << "" << endl;
+
+}
+
 int _tmain(int argc, _TCHAR* argv[])
+{
+     
+     //xorTest();
+          
+     VirtualMachine vm;
+}
+
+int _tmain1(int argc, _TCHAR* argv[])
 {
 
      FILE *romFile;
@@ -68,13 +126,15 @@ int _tmain(int argc, _TCHAR* argv[])
           }
 
 
-          cout << myMnemonic << endl;
+          //cout << myMnemonic << endl;
 
      }
 
+     //Sort and remove duplicates from the list of data items
      std::sort(dataItem.begin(), dataItem.end());
      dataItem.erase(unique(dataItem.begin(), dataItem.end()), dataItem.end());
 
+     //Sort and remove duplicates from the list to labels
      std::sort(labelItems.begin(), labelItems.end());
      labelItems.erase(unique(labelItems.begin(), labelItems.end()), labelItems.end());
 
@@ -87,18 +147,22 @@ int _tmain(int argc, _TCHAR* argv[])
 
      }
 
+     //Loop through all items which need labels, set the labels for the instructions.
      vector<short>::iterator labelIt;
      for (labelIt = labelItems.begin(); labelIt < labelItems.end(); labelIt++ /*, i++*/)
      {
           int dataItm = *labelIt;
-          cout << "One Label " << hex << dataItm << endl;
+          //cout << "One Label " << hex << dataItm << endl;
 
           for (it = instructionVector.begin(); it < instructionVector.end(); it++ /*, i++*/)
           {
                Instruction ins = *it;
+               //cout << "Comparing " << ins.getMemoryAddress() << " to " << dataItm << endl;
                if (ins.getMemoryAddress() == dataItm)
                {
-                    ins.setLabel("LABEL_" + Instruction::itostr(ins.getMemoryAddress(), 4));
+                    //cout << "Setting label" << endl;
+                    //ins.setLabel("LABEL_" + Instruction::itostr(ins.getMemoryAddress(), 4));
+                    (*it).setLabel("LABEL_" + Instruction::itostr(ins.getMemoryAddress(), 4) + ":");
                }
 
 
@@ -106,14 +170,37 @@ int _tmain(int argc, _TCHAR* argv[])
 
      }
 
+
+     cout << "Listing mnemonics" << endl;
+     //Loop through all instructions and modify the mnemonic to set the label to the value.
      for (it = instructionVector.begin(); it < instructionVector.end(); it++ /*, i++*/)
      {
           Instruction ins = *it;
-          if (ins.isLabelOperation())
-          {
-               ins.setLabel("LABEL_" + Instruction::itostr(ins.getMemoryAddress(), 4));
-          }
+          //if (ins.isLabelOperation())
+         // {
+          //     ins.setLabel("LABEL_" + Instruction::itostr(ins.getMemoryAddress(), 4));
+         // }
+          //cout << ins.getMnemonic() << endl;
 
+          string label = ins.getLabel();
+          //if (label.length() > 0)
+          //{
+          //     cout << "Label is " << label << endl;
+          //}
+          //else
+          //{
+          //     cout << "No label" << endl;
+          //}
+
+          cout << "Emit: "
+               << Instruction::itostr(ins.getMemoryAddress(), 4)
+               << "\t"
+               << ins.getFullInstruction()
+               << "\t"
+               << ((ins.getLabel().length() > 0) ? ins.getLabel() + "\t" : "\t\t")
+               << ins.getMnemonic()
+//               << " For " << &ins
+               << endl;
 
      }
 

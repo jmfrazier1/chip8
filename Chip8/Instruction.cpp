@@ -1,11 +1,12 @@
 #include "stdafx.h"
-#include "Instruction.h"
+//#include "Instruction.h"
 using namespace std;
 
 //#define EMIT_COMMENTS               
 
 Instruction::Instruction()
 {
+     label = "";
 }
 
 string Instruction::itostr(int w, size_t hex_len = sizeof(int) << 1) {
@@ -17,6 +18,7 @@ string Instruction::itostr(int w, size_t hex_len = sizeof(int) << 1) {
 }
 Instruction::Instruction(unsigned int offset, unsigned int instruction)
 {
+     label = "";
      memoryOffset = offset;
      fullInstruction = instruction;
      decode();
@@ -54,15 +56,15 @@ void Instruction::decode()
                {
                case 0xE0:
                     type = TYPE_CLS;
-                    mnemonic = itostr(memoryOffset, 3) + "\t" + "CLS";
+                    mnemonic = "CLS";
                     break;
                case 0xEE:
                     type = TYPE_RTS;
-                    mnemonic = itostr(memoryOffset, 3) + "\t" + "RTS";
+                    mnemonic = "RTS";
                     break;
                default:
                     type = TYPE_ERROR;
-                    mnemonic = itostr(memoryOffset, 3) + "\t" + "Invalid instruction found " + itostr(fullInstruction, 4);
+                    mnemonic = "Invalid instruction found " + itostr(fullInstruction, 4);
                     break;
                }
           }
@@ -70,49 +72,49 @@ void Instruction::decode()
           {
                //This is a jump that is not implemented
                type = TYPE_ERROR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "Invalid instruction found " + itostr(fullInstruction, 4);
+               mnemonic = "Invalid instruction found " + itostr(fullInstruction, 4);
           }
           break;
      case 0x1:
           //Jump instruction
           //1NNN	     Jump to NNN
           type = TYPE_JMP;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "JMP " + itostr(nnn, 3);
+          mnemonic = "JMP LABEL_" + itostr(nnn, 4);
           //cout << "Mnemonic is " << mnemonic << endl;
           break;
      case 0x2:
           //Call subroutine
           //2NNN	     Call CHIP-8 sub-routine at NNN (16 successive calls max)
           type = TYPE_JSR;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "JSR " + itostr(nnn, 3);
+          mnemonic = "JSR LABEL_" + itostr(nnn, 4);
           break;
      case 0x3:
           //Skip next if VX == KK
-          type = TYPE_SKEQ_REG;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "SKEQ V" + itostr(x, 1) + ", " + itostr(kk, 2);
+          type = TYPE_SKEQ;
+          mnemonic = "SKEQ V" + itostr(x, 1) + ", " + itostr(kk, 2);
           //cout << "mnemonic " << mnemonic << endl;
           break;
      case 0x4:
           //Skip next if VX != KK
-          type = TYPE_SKNE_REG;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "SKNE V" + itostr(x, 1) + ", " + itostr(kk, 2);
+          type = TYPE_SKNE;
+          mnemonic = "SKNE V" + itostr(x, 1) + ", " + itostr(kk, 2);
           break;
      case 0x5:
           //Skip next if VX == VY
           type = TYPE_SKEQ_REG;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "SKEQ V" + itostr(x, 1) + ", V" + itostr(y, 1);
+          mnemonic = "SKEQ V" + itostr(x, 1) + ", V" + itostr(y, 1);
           break;
      case 0x6:
           //VX = KK
           //Set the value of the VX register to the 16 bit constant
           type = TYPE_MOV;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "MOV V" + itostr(x, 1) + ", " + itostr(kk, 2);
+          mnemonic = "MOV V" + itostr(x, 1) + ", " + itostr(kk, 2);
           break;
      case 0x7:
           //VX = VX + KK
           //7XKK	VX = VX + KK
           type = TYPE_ADD;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "ADD V" + itostr(x, 1) + ", " + itostr(kk, 2);
+          mnemonic = "ADD V" + itostr(x, 1) + ", " + itostr(kk, 2);
           break;
      case 0x8:
           //
@@ -121,79 +123,79 @@ void Instruction::decode()
           case 0x0:
                //8XY0		VX = VY
                type = TYPE_MOV_REG;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "MOV V" + itostr(x, 1) + "," + itostr(y, 1);
+               mnemonic = "MOV V" + itostr(x, 1) + "," + itostr(y, 1);
                break;
           case 0x1:
                //8XY1		VX = VX OR VY
                type = TYPE_OR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "OR V" + itostr(x, 1) + ", V" + itostr(y, 1);
+               mnemonic = "OR V" + itostr(x, 1) + ", V" + itostr(y, 1);
                break;
           case 0x2:
                //8XY2		VX = VX AND VY
                type = TYPE_AND;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "AND V" + itostr(x, 1) + ", V" + itostr(y, 1);
+               mnemonic = "AND V" + itostr(x, 1) + ", V" + itostr(y, 1);
                break;
           case 0x3:
                //8XY3		VX = VX XOR VY(*)
                type = TYPE_XOR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "XOR V" + itostr(x, 1) + ", V" + itostr(y, 1);
+               mnemonic = "XOR V" + itostr(x, 1) + ", V" + itostr(y, 1);
                break;
           case 0x4:
                //8XY4		VX = VX + VY, VF = carry
                type = TYPE_ADD_REG;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "ADD V" + itostr(x, 1) + ", V" + itostr(y, 1);
+               mnemonic = "ADD V" + itostr(x, 1) + ", V" + itostr(y, 1);
                break;
           case 0x5:
                //8XY5		VX = VX - VY, VF = not borrow(**)
                type = TYPE_SUB;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "SUB V" + itostr(x, 1) + ", V" + itostr(y, 1);
+               mnemonic = "SUB V" + itostr(x, 1) + ", V" + itostr(y, 1);
                break;
           case 0x6:
                //8XY6		VX = VX SHR 1 (VX = VX / 2), VF = carry
                type = TYPE_SHR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "SHR V" + itostr(x, 1) + ", V" + itostr(y, 1);
+               mnemonic = "SHR V" + itostr(x, 1) + ", V" + itostr(y, 1);
                break;
           case 0x7:
                //8XY7		VX = VY - VX, VF = not borrow(*) (**)
                type = TYPE_RSB;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "RSB V" + itostr(x, 1) + ", V" + itostr(y, 1);
+               mnemonic = "RSB V" + itostr(x, 1) + ", V" + itostr(y, 1);
                break;
           case 0xE:
                //8XYE		VX = VX SHL 1 (VX = VX * 2), VF = carry
                type = TYPE_SHL;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "SHL V" + itostr(x, 1) + ", V" + itostr(y, 1);
+               mnemonic = "SHL V" + itostr(x, 1) + ", V" + itostr(y, 1);
                break;
           default:
                type = TYPE_ERROR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "Invalid instruction found " + itostr(fullInstruction, 4);
+               mnemonic = "Invalid instruction found " + itostr(fullInstruction, 4);
                break;
           }
           break;
      case 0x9:
           //Skip next if VX != VY
           type = TYPE_SKNE_REG;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "SKNE V" + itostr(x, 1) + ", V" + itostr(y, 1);
+          mnemonic = "SKNE V" + itostr(x, 1) + ", V" + itostr(y, 1);
           break;
      case 0xA:
           //I = NNN
           type = TYPE_MVI;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "MVI " + itostr(nnn, 3);
+          mnemonic = "MVI " + itostr(nnn, 3);
           break;
      case 0xB:
           //Jump to NNN + V0
           type = TYPE_JMI;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "JMI " + itostr(nnn, 3);
+          mnemonic = "JMI " + itostr(nnn, 3);
           break;
      case 0xC:
           //VX = Random number AND KK
           type = TYPE_RAND;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "RAND V" + itostr(x, 1) + "," + itostr(kk, 2);
+          mnemonic = "RAND V" + itostr(x, 1) + "," + itostr(kk, 2);
           break;
      case 0xD:
           //Draws a sprite at (VX,VY) starting at M(I). VF = collision. If N=0, draws the 16 x 16 sprite, else an 8 x N sprite.
           //DXYN	     Draws a sprite at(VX, VY) starting at M(I).VF = collision.If N = 0, draws the 16 x 16 sprite, else an 8 x N sprite.
           type = TYPE_SPRITE;
-          mnemonic = itostr(memoryOffset, 3) + "\t" + "SPRITE V" + itostr(x, 1) + "," + itostr(y, 1) + "," + itostr(n, 1);
+          mnemonic = "SPRITE V" + itostr(x, 1) + "," + itostr(y, 1) + "," + itostr(n, 1);
           break;
      case 0xE:
           //Keypress control
@@ -202,16 +204,16 @@ void Instruction::decode()
           case 0x9E:
                //EX9E		Skip next instruction if key VX pressed
                type = TYPE_SKPR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "SKPR V" + itostr(x, 1);
+               mnemonic = "SKPR V" + itostr(x, 1);
                break;
           case 0xA1:
                //EXA1		Skip next instruction if key VX not pressed
                type = TYPE_SKUP;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "SKUP V" + itostr(x, 1);
+               mnemonic = "SKUP V" + itostr(x, 1);
                break;
           default:
                type = TYPE_ERROR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "Invalid instruction found " + itostr(fullInstruction, 4);
+               mnemonic = "Invalid instruction found " + itostr(fullInstruction, 4);
                break;
           }
           break;
@@ -222,54 +224,54 @@ void Instruction::decode()
           case 0x07:
                //fr07	gdelay vr	get delay timer into vr
                type = TYPE_GDELAY;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "GDELAY V" + itostr(x, 1);
+               mnemonic = "GDELAY V" + itostr(x, 1);
                break;
           case 0x0A:
                //fr0a	key vr	wait for for keypress,put key in register vr
                type = TYPE_KEY;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "KEY V" + itostr(x, 1);
+               mnemonic = "KEY V" + itostr(x, 1);
                break;
           case 0x15:
                //fr15	sdelay vr	set the delay timer to vr
                type = TYPE_SDELAY;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "SDELAY V" + itostr(x, 1);
+               mnemonic = "SDELAY V" + itostr(x, 1);
                break;
           case 0x18:
                //fr18	ssound vr	set the sound timer to vr
                type = TYPE_GSOUND;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "GSOUND V" + itostr(x, 1);
+               mnemonic = "GSOUND V" + itostr(x, 1);
                break;
           case 0x1E:
                //I = I + VX
                type = TYPE_ADI;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "ADI V" + itostr(x, 1);
+               mnemonic = "ADI V" + itostr(x, 1);
                break;
           case 0x29:
                //FX29
                //I points to the 4 x 5 font sprite of hex char in VX
                type = TYPE_FONT;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "FONT V" + itostr(x, 1);
+               mnemonic = "FONT V" + itostr(x, 1);
                break;
           case 0x33:
                //FX29
                //I points to the 4 x 5 font sprite of hex char in VX
                type = TYPE_BCD;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "BCD V" + itostr(x, 1);
+               mnemonic = "BCD V" + itostr(x, 1);
                break;
           case 0x55:
                //Save V0...VX in memory starting at M(I)
                //LD[I], V0
                type = TYPE_STR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "STR V0-V" + itostr(x, 1);
+               mnemonic = "STR V0-V" + itostr(x, 1);
                break;
           case 0x65:
                //Load V0...VX from memory starting at M(I)
                type = TYPE_LDR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "LDR V0-V" + itostr(x, 1);
+               mnemonic = "LDR V0-V" + itostr(x, 1);
                break;
           default:
                type = TYPE_ERROR;
-               mnemonic = itostr(memoryOffset, 3) + "\t" + "Invalid instruction found " + itostr(fullInstruction, 4);
+               mnemonic = "Invalid instruction found " + itostr(fullInstruction, 4);
                break;
           }
           break;
@@ -857,3 +859,29 @@ int Instruction::operator<(const Instruction &rhs) const
      }
      return 0;
 }
+
+
+bool Instruction::isDataOperation()
+{
+     bool dataOp = false;
+     switch (type)
+     {
+     case Instruction::TYPE_MVI:
+          dataOp = true;
+          break;
+     }
+     return dataOp;
+}
+bool Instruction::isLabelOperation()
+{
+     bool labelOp = false;
+     switch (type)
+     {
+     case Instruction::TYPE_JSR:
+     case Instruction::TYPE_JMP:
+          labelOp = true;
+          break;
+     }
+     return labelOp;
+}
+
